@@ -1,0 +1,25 @@
+#image {
+	position: absolute;
+	top: calc(50vh - 250px);
+	left: calc(50vw - 250px);
+	width: 500px;
+	height: 500px;
+	background-image: url('img1-small.png');
+	-webkit-animation-name: nextImage;
+	-webkit-animation-duration: 5s;
+	-webkit-animation-fill-mode: forwards;
+}
+
+@-webkit-keyframes nextImage {
+	0% {
+		background-image: url('img1-small.png');
+		transform: rotate(0deg);
+	}
+	50% {
+		background-image: url('img1-small.png');
+	}
+	100% {
+		background-image: url('img2-small.png');
+		transform: rotate(360deg);
+	}
+}

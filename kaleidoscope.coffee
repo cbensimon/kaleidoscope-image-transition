@@ -1,53 +1,67 @@
+#DOM Functions
+
+getRadius = () ->
+
+  w = window.innerWidth
+  h = window.innerHeight
+  d2 = w*w + h*h
+  (Math.sqrt d2)/2
+
 # Temporal functions
 
 class Timer
 
   constructor: (period) ->
 
-    @date = new Date
-    @time = date.getTime()
+    @time = new Date().getTime()
     @t = 0
     @period = period
 
   getT: () ->
 
-    currentTime = @date.getTime()
+    currentTime = new Date().getTime()
     deltaTime = currentTime - @time
 
     @time = currentTime
     @t += deltaTime
-    @t = 0 if @t > @period
+    @t = @period if @t > @period
 
     return @t/@period
 
 class Curves
 
-  constructor: (values, timer) ->
+  constructor: (options) ->
 
-    @xBegin = values.x.begin
-    @xEnd = values.x.end
-    @yBegin = values.y.begin
-    @yEnd = values.y.end
-
-    @timer = timer
+    @fx = options.x
+    @fy = options.y
+    @timer = options.timer
 
   x: () ->
 
     t = @timer.getT()
-
-    #linear
-    return linear(@xBegin, @xEnd, t)
+    return @fx t
 
   y: () ->
 
     t = @timer.getT()
+    return @fy t
 
-    #linear
-    return linear(@yBegin, @yEnd, t)
+# Different types of curves
 
-  linear: (begin, end, t) ->
+linear = (begin, end) ->
+  (t) ->
+    (end - begin)*t + begin
 
-    return (begin - end)*t + begin
+triCubic = (begin, middle) ->
+  (t) ->
+    (2*t - 1)*(2*t - 1)*(begin - middle) + middle
+
+ease = (begin, end) ->
+  (t) ->
+    t *= 2
+    return (end - begin)/2*t*t*t*t + begin if (t < 1)
+    t -= 2
+    (begin - end)/2 * (t*t*t*t - 2) + begin
 
 
 # Kaleidoscope
@@ -64,7 +78,7 @@ class Kaleidoscope
       offsetScale: 1.0
       offsetX: 0.0
       offsetY: 0.0
-      radius: 1000
+      radius: getRadius()
       slices: 12
       zoom: 1.0
         
@@ -138,7 +152,7 @@ class DragDrop
   
 image = new Image
 image.onload = => do kaleidoscope.draw
-image.src = 'http://cl.ly/image/1X3e0u1Q0M01/cm.jpg'
+image.src = 'img1-small-transparent.png'
 
 kaleidoscope = new Kaleidoscope
   image: image
@@ -150,8 +164,28 @@ kaleidoscope.domElement.style.marginTop = -kaleidoscope.radius + 'px'
 kaleidoscope.domElement.style.left = '50%'
 kaleidoscope.domElement.style.top = '50%'
 document.body.appendChild kaleidoscope.domElement
+
+curves = new Curves
+  x:
+    linear -267, 166
+  y:
+    triCubic -900, -233
+  timer: new Timer 5000
+
+update = () ->
+
+  kaleidoscope.offsetX = curves.x()
+  kaleidoscope.offsetY = curves.y()
+
+  console.log (parseInt kaleidoscope.offsetX), (parseInt kaleidoscope.offsetY)
+
+  kaleidoscope.draw()
+
+  window.requestAnimationFrame update
+
+update()
   
-# Init drag & drop
+### Init drag & drop
 
 dragger = new DragDrop ( data ) -> kaleidoscope.image.src = data
   
@@ -222,3 +256,5 @@ onChange = =>
   do kaleidoscope.draw
 
 ( c.onChange onChange unless c.property is 'interactive' ) for c in gui.__controllers
+
+###
