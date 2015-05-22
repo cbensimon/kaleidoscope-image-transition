@@ -91,8 +91,8 @@ ease = function(begin, end) {
 };
 
 Parameters = function() {
-  this.xBegin = -70;
-  this.xEnd = 89;
+  this.xBegin = -76;
+  this.xEnd = 93;
   this.yBegin = 0.999;
   this.yMiddle = 250;
   this.rotationBegin = 0.001;

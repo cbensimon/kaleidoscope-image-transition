@@ -19,13 +19,14 @@
 @-webkit-keyframes nextImage {
 	0% {
 		background-image: url('img3-small.png');
-		transform: rotate(0deg);
+		transform: scale(1,1);
 	}
 	50% {
 		background-image: url('img3-small.png');
+		transform: scale(0,0);
 	}
 	100% {
 		background-image: url('img2-small.png');
-		transform: rotate(360deg);
+		transform: scale(1,1)
 	}
 }
