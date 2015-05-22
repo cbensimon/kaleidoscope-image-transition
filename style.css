@@ -1,10 +1,16 @@
 #image {
 	position: absolute;
+	z-index: -2;
 	top: calc(50vh - 250px);
 	left: calc(50vw - 250px);
 	width: 500px;
 	height: 500px;
-	background-image: url('img1-small.png');
+	background-image: url('img3-small.png');
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+#image.next {
 	-webkit-animation-name: nextImage;
 	-webkit-animation-duration: 5s;
 	-webkit-animation-fill-mode: forwards;
@@ -12,11 +18,11 @@
 
 @-webkit-keyframes nextImage {
 	0% {
-		background-image: url('img1-small.png');
+		background-image: url('img3-small.png');
 		transform: rotate(0deg);
 	}
 	50% {
-		background-image: url('img1-small.png');
+		background-image: url('img3-small.png');
 	}
 	100% {
 		background-image: url('img2-small.png');

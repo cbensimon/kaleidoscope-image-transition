@@ -28,29 +28,35 @@ class Timer
 
     return @t/@period
 
+  end: () ->
+
+    @t == @period
+
 class Curves
 
   constructor: (options) ->
-
     @fx = options.x
     @fy = options.y
+    @fr = options.r
     @timer = options.timer
 
   x: () ->
-
     t = @timer.getT()
     return @fx t
 
   y: () ->
-
     t = @timer.getT()
     return @fy t
 
+  r: () ->
+    t = @timer.getT()
+    return @fr t
+
 # Different types of curves
 
-linear = (begin, end) ->
+linear = (begin, end, power) ->
   (t) ->
-    (end - begin)*t + begin
+    (end - begin)*Math.pow(t, power) + begin
 
 triCubic = (begin, middle) ->
   (t) ->
@@ -62,6 +68,18 @@ ease = (begin, end) ->
     return (end - begin)/2*t*t*t*t + begin if (t < 1)
     t -= 2
     (begin - end)/2 * (t*t*t*t - 2) + begin
+
+# Global parameters for the animation
+
+Parameters = () ->
+
+  this.xBegin = -70
+  this.xEnd = 89
+  this.yBegin = 0.999
+  this.yMiddle = 250
+  this.rotationBegin = 0.001
+  this.rotationMiddle = 0.001
+  return
 
 
 # Kaleidoscope
@@ -111,7 +129,7 @@ class Kaleidoscope
       @context.closePath()
       
       @context.rotate @HALF_PI
-      @context.scale scale, scale
+      #@context.scale scale, scale
       @context.scale [-1,1][index % 2], 1
       @context.translate @offsetX - cx, @offsetY
       @context.rotate @offsetRotation
@@ -149,112 +167,81 @@ class DragDrop
       reader.readAsDataURL file
 
 # Init kaleidoscope
+
+document.body.onload = () ->
   
-image = new Image
-image.onload = => do kaleidoscope.draw
-image.src = 'img1-small-transparent.png'
+  image = new Image
+  image.onload = => do kaleidoscope.draw
+  image.src = 'img3-small.png'
 
-kaleidoscope = new Kaleidoscope
-  image: image
-  slices: 20
+  kaleidoscope = new Kaleidoscope
+    image: image
+    slices: 20
 
-kaleidoscope.domElement.style.position = 'absolute'
-kaleidoscope.domElement.style.marginLeft = -kaleidoscope.radius + 'px'
-kaleidoscope.domElement.style.marginTop = -kaleidoscope.radius + 'px'
-kaleidoscope.domElement.style.left = '50%'
-kaleidoscope.domElement.style.top = '50%'
-document.body.appendChild kaleidoscope.domElement
+  parameters = new Parameters
 
-curves = new Curves
-  x:
-    linear -267, 166
-  y:
-    triCubic -900, -233
-  timer: new Timer 5000
-
-update = () ->
-
-  kaleidoscope.offsetX = curves.x()
-  kaleidoscope.offsetY = curves.y()
-
-  console.log (parseInt kaleidoscope.offsetX), (parseInt kaleidoscope.offsetY)
-
-  kaleidoscope.draw()
-
-  window.requestAnimationFrame update
-
-update()
-  
-### Init drag & drop
-
-dragger = new DragDrop ( data ) -> kaleidoscope.image.src = data
-  
-# Mouse events
-  
-tx = kaleidoscope.offsetX
-ty = kaleidoscope.offsetY
-tr = kaleidoscope.offsetRotation
-  
-onMouseMoved = ( event ) =>
-
-  cx = window.innerWidth / 2
-  cy = window.innerHeight / 2
-                
-  dx = event.pageX / window.innerWidth
-  dy = event.pageY / window.innerHeight
-                
-  hx = dx - 0.5
-  hy = dy - 0.5
-                
-  tx = hx * kaleidoscope.radius * -2
-  ty = hy * kaleidoscope.radius * 2
-#  tr = Math.atan2 hy, hx
-
-window.addEventListener 'mousemove', onMouseMoved, no
-                
-# Init
-  
-options =
-  interactive: yes
-  ease: 0.1
-                
-do update = =>
-                
-  if options.interactive
-
-    delta = tr - kaleidoscope.offsetRotation
-    theta = Math.atan2( Math.sin( delta ), Math.cos( delta ) )
-                
-    kaleidoscope.offsetX += ( tx - kaleidoscope.offsetX ) * options.ease
-    kaleidoscope.offsetY += ( ty - kaleidoscope.offsetY ) * options.ease
-    kaleidoscope.offsetRotation += ( theta - kaleidoscope.offsetRotation ) * options.ease
-    
-    do kaleidoscope.draw
-  
-  setTimeout update, 1000/60
-    
-# Init gui
-
-gui = new dat.GUI
-gui.add( kaleidoscope, 'zoom' ).min( 0.25 ).max( 2.0 )
-gui.add( kaleidoscope, 'slices' ).min( 6 ).max( 32 ).step( 2 )
-gui.add( kaleidoscope, 'radius' ).min( 200 ).max( 500 )
-gui.add( kaleidoscope, 'offsetX' ).min( -kaleidoscope.radius ).max( kaleidoscope.radius ).listen()
-gui.add( kaleidoscope, 'offsetY' ).min( -kaleidoscope.radius ).max( kaleidoscope.radius ).listen()
-gui.add( kaleidoscope, 'offsetRotation' ).min( -Math.PI ).max( Math.PI ).listen()
-gui.add( kaleidoscope, 'offsetScale' ).min( 0.5 ).max( 4.0 )
-gui.add( options, 'interactive' ).listen()
-gui.close()
-
-onChange = =>
-
+  kaleidoscope.domElement.style.position = 'absolute'
   kaleidoscope.domElement.style.marginLeft = -kaleidoscope.radius + 'px'
   kaleidoscope.domElement.style.marginTop = -kaleidoscope.radius + 'px'
-    
-  options.interactive = no
-    
-  do kaleidoscope.draw
+  kaleidoscope.domElement.style.left = '50%'
+  kaleidoscope.domElement.style.top = '50%'
+  kaleidoscope.domElement.style.zIndex = '-1'
+  document.body.appendChild kaleidoscope.domElement
+  document.querySelector('#start').addEventListener('click', () -> playAnimation());
 
-( c.onChange onChange unless c.property is 'interactive' ) for c in gui.__controllers
+  playAnimation = () ->
+
+    update = () ->
+
+      kaleidoscope.offsetX = curves.x()
+      kaleidoscope.offsetY = curves.y()
+      kaleidoscope.offsetRotation = curves.r()
+
+      kaleidoscope.draw()
+
+      if curves.timer.end()
+        window.setTimeout (() -> document.querySelector('#image').classList.remove('next')), 1500
+      else
+        window.requestAnimationFrame update
+
+    xSize = image.width/100
+    ySize = -(kaleidoscope.radius + image.height)
+    console.log xSize, ySize
+
+    curves = new Curves
+      x:
+        linear parameters.xBegin*xSize, parameters.xEnd*xSize, 1.3
+      y:
+        triCubic parameters.yBegin*ySize, -parameters.yMiddle
+      r:
+        triCubic parameters.rotationBegin, parameters.rotationMiddle
+      timer: new Timer 5000
+
+    document.querySelector('#image').classList.add('next');
+    update()
+
+  # Init gui
+
+  gui = new dat.GUI
+  gui.add( parameters, 'xBegin' ).min( -100 ).max( 100 )
+  gui.add( parameters, 'xEnd' ).min( -100 ).max( 100 )
+  gui.add( parameters, 'yBegin' ).min( 0 ).max( 1 )
+  gui.add( parameters, 'yMiddle' ).min( 0 ).max( kaleidoscope.radius )
+  gui.add( parameters, 'rotationBegin' ).min( -3.14 ).max( 3.14 )
+  gui.add( parameters, 'rotationMiddle' ).min( -3.14 ).max( 3.14 )
+  gui.close()
+
+###
+
+  onChange = =>
+
+  #	kaleidoscope.domElement.style.marginLeft = -kaleidoscope.radius + 'px'
+  #	kaleidoscope.domElement.style.marginTop = -kaleidoscope.radius + 'px'
+      
+  #  options.interactive = no
+      
+    do kaleidoscope.draw
+
+  ( c.onChange onChange ) for c in gui.__controllers
 
 ###
