@@ -76,7 +76,7 @@ Parameters = () ->
   this.xBegin = -76
   this.xEnd = 93
   this.yBegin = 0.999
-  this.yMiddle = 250
+  this.yMiddle = 180
   this.rotationBegin = 0.001
   this.rotationMiddle = 0.001
   return

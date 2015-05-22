@@ -25,8 +25,14 @@
 		background-image: url('img3-small.png');
 		transform: scale(0,0);
 	}
+	70% {
+		background-image: url('img2-small.png');
+		transform: scale(0,0);
+	}
 	100% {
 		background-image: url('img2-small.png');
 		transform: scale(1,1)
 	}
 }
+
+/* 1032 x 837 */
